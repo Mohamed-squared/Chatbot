@@ -129,7 +129,7 @@ class MemoryManager:
 
         system_prompt = """
         Your task is to analyze a conversation and identify facts, preferences, or key information that should be saved to a long-term memory.
-        The user may also explicitly ask to remember something.
+        Pay close attention to explicit instructions. If the user says "remember that...", "don't forget...", or similar phrases, you MUST treat this as a directive to store the information.
         If you find something worth remembering, extract it and format it as a JSON object with three keys: "category", "shell", and "details".
         - "category": A broad topic (e.g., "User Preferences", "Project Ideas", "Personal Details").
         - "shell": A mid-level summary of the information (e.g., "Favorite Subjects", "Book Recommendations").

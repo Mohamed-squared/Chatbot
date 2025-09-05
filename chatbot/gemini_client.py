@@ -67,6 +67,35 @@ class GeminiClient:
         response = self.model.generate_content(prompt)
         return response.text.strip()
 
+    def categorize_memory(self, details: str) -> dict | None:
+        """
+        Uses the AI to determine a category and shell for a given piece of information.
+
+        Args:
+            details (str): The text content of the memory to categorize.
+
+        Returns:
+            dict | None: A dictionary with "category" and "shell" keys, or None on failure.
+        """
+        import json
+        system_prompt = """
+        You are a memory categorization assistant. Given a piece of text, your job is to determine a suitable "category" and "shell" for it.
+        - "category": A broad topic (e.g., "User Preferences", "Project Ideas", "Personal Details").
+        - "shell": A mid-level summary of the information (e.g., "Favorite Subjects", "Book Recommendations").
+        Please respond with ONLY a valid JSON object containing these two keys. Example: {"category": "User Preferences", "shell": "Favorite Colors"}
+        """
+
+        prompt = f"{system_prompt}\n\nText to categorize:\n{details}"
+
+        response = self.model.generate_content(prompt)
+
+        try:
+            # The response should be a JSON string, so we parse it.
+            return json.loads(response.text)
+        except (json.JSONDecodeError, TypeError):
+            return None
+
+
 if __name__ == '__main__':
     # Example usage (requires a .env file with GEMINI_API_KEY)
     try:
