@@ -53,9 +53,9 @@ The chatbot requires a Google Gemini API key.
     ```bash
     cp .env.example .env
     ```
-2.  Open the `.env` file and replace `"YOUR_GEMINI_API_KEY"` with your actual Gemini API key.
+2.  Open the `.env` file and replace the placeholder with one or more of your Gemini API keys, separated by commas.
     ```
-    GEMINI_API_KEY="AIzaSy..."
+    GEMINI_API_KEYS="AIzaSy...key1,AIzaSy...key2"
     ```
 
 ## How to Run

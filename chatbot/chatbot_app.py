@@ -22,7 +22,7 @@ class ChatbotApp:
             self.gemini_client = GeminiClient()
         except ValueError as e:
             self.console.print(f"[bold red]Error: {e}[/bold red]")
-            self.console.print("Please create a .env file with your GEMINI_API_KEY.")
+            self.console.print("Please create a .env file with your GEMINI_API_KEYS.")
             exit()
 
         self.session_manager = SessionManager()

@@ -193,4 +193,4 @@ if __name__ == '__main__':
             memories_after_delete = mm.get_all_memories()
             print(f"Memories remaining: {len(memories_after_delete)}")
     else:
-        print("Cannot run full MemoryManager test without GEMINI_API_KEY.")
+        print("Cannot run full MemoryManager test without GEMINI_API_KEYS.")
