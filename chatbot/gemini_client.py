@@ -6,7 +6,7 @@ class GeminiClient:
     """
     A client for interacting with the Google Gemini API.
     """
-    def __init__(self, model_name="gemini-2.5-pro"):
+    def __init__(self, model_name="gemini-2.5-flash"):
         """
         Initializes the Gemini client.
 
