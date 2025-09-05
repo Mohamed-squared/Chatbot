@@ -72,6 +72,8 @@ class ChatbotApp:
                 self.console.print("[bold red]Usage: /switch [id][/bold red]")
         elif cmd == '/export':
             self.export_session(args[0] if args else "md")
+        elif cmd == '/remember':
+            self.handle_remember_command(command)
         elif cmd == '/mem':
             self.handle_memory_command(args)
         elif cmd == '/help':
@@ -248,6 +250,7 @@ class ChatbotApp:
             "/new": "Start a new chat session.",
             "/list": "List all available sessions.",
             "/switch [id]": "Switch to a specific session by its ID.",
+            "/remember [text]": "Tell the chatbot to remember a specific piece of information.",
             "/export [md|json]": "Export the current session to a file.",
             "/mem list": "List all stored long-term memories.",
             "/mem add \"cat\" \"shell\" \"details\"": "Manually add a new memory.",
@@ -261,6 +264,44 @@ class ChatbotApp:
             table.add_row(cmd, desc)
 
         self.console.print(table)
+
+    def handle_remember_command(self, user_input: str):
+        """Handles the /remember command to explicitly store a memory."""
+        # The command is '/remember', so the text is everything after that
+        details_to_remember = user_input.partition(' ')[2].strip()
+
+        if not details_to_remember:
+            self.console.print("[bold red]Usage: /remember [text to remember][/bold red]")
+            return
+
+        with self.console.status("[bold blue]Categorizing and storing memory...[/bold blue]"):
+            try:
+                # Use the AI to generate a category and shell
+                memory_structure = self.gemini_client.categorize_memory(details_to_remember)
+
+                if memory_structure and all(k in memory_structure for k in ["category", "shell"]):
+                    self.memory_manager.add_memory(
+                        memory_structure["category"],
+                        memory_structure["shell"],
+                        details_to_remember
+                    )
+                    mem_panel = Panel(
+                        f"[bold magenta]Category:[/bold magenta] {memory_structure['category']}\n"
+                        f"[bold yellow]Shell:[/bold yellow] {memory_structure['shell']}\n"
+                        f"[bold green]Details:[/bold green] {details_to_remember}",
+                        title="[bold blue]📝 Memory Stored[/bold blue]",
+                        border_style="blue"
+                    )
+                    self.console.print(mem_panel)
+                else:
+                    # Fallback if the AI fails to structure the data
+                    self.console.print("[bold red]Failed to categorize memory automatically. Storing without category.[/bold red]")
+                    self.memory_manager.add_memory("Uncategorized", "User Directed", details_to_remember)
+
+            except Exception as e:
+                self.console.print(f"[bold red]An error occurred while storing the memory: {e}[/bold red]")
+                self.memory_manager.add_memory("Uncategorized", "User Directed (Error)", details_to_remember)
+
 
     def handle_memory_command(self, args: list):
         """Handles memory management subcommands."""

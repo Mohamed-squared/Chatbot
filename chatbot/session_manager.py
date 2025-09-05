@@ -51,18 +51,36 @@ class SessionManager:
         )
 
         messages = cursor.fetchall()
-
-        # Simple token counting and truncation
-        # A more advanced implementation would use a proper tokenizer
         history = []
         current_tokens = 0
 
-        # Always include the most recent messages
+        # A common heuristic is ~4 characters per token
+        def count_tokens(text: str) -> int:
+            return len(text) // 4
+
+        # Handle the special case of injected memory prompt
+        system_prompt_messages = []
+        if len(messages) >= 2 and "I have some long-term memories" in messages[0]['content']:
+            system_prompt_user = messages[0]
+            system_prompt_model = messages[1]
+            system_prompt_messages = [
+                {"role": system_prompt_user["role"], "parts": [system_prompt_user["content"]]},
+                {"role": system_prompt_model["role"], "parts": [system_prompt_model["content"]]}
+            ]
+            prompt_tokens = count_tokens(system_prompt_user["content"]) + count_tokens(system_prompt_model["content"])
+
+            # If the prompt itself exceeds the limit, we can't do much
+            if prompt_tokens > max_tokens:
+                return []
+
+            current_tokens += prompt_tokens
+            messages = messages[2:] # Process the rest of the messages
+
+        # Process messages from newest to oldest
         temp_history = []
         for row in reversed(messages):
             content = row["content"]
-            # A common heuristic is ~4 characters per token
-            message_tokens = len(content) // 4
+            message_tokens = count_tokens(content)
 
             if current_tokens + message_tokens > max_tokens:
                 break
@@ -73,13 +91,9 @@ class SessionManager:
         # The history is reversed, so we reverse it back
         history = list(reversed(temp_history))
 
-        # This logic ensures that if a system prompt for memory was injected, it is preserved
-        # It assumes the first two messages are the system prompt and the model's ack.
-        if len(messages) > len(history) and "I have some long-term memories" in messages[0]['content']:
-             # check if the first message is not in history
-            if not any(msg['parts'][0] == messages[0]['content'] for msg in history):
-                history.insert(0, {"role": messages[1]["role"], "parts": [messages[1]["content"]]})
-                history.insert(0, {"role": messages[0]["role"], "parts": [messages[0]["content"]]})
+        # Prepend the system prompt messages if they exist
+        if system_prompt_messages:
+            history = system_prompt_messages + history
 
         return history
 
